@@ -5,6 +5,11 @@ import android.graphics.BitmapFactory
 import android.opengl.GLES31.*
 import android.opengl.GLUtils.texImage2D
 import android.util.Log
+import com.jrms.openglah.models.Vector
+import com.jrms.openglah.models.geometry.Plane
+import com.jrms.openglah.models.geometry.Point
+import com.jrms.openglah.models.geometry.Ray
+import com.jrms.openglah.models.geometry.Sphere
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStream
@@ -137,6 +142,37 @@ class Util{
             glBindTexture(GL_TEXTURE_2D, 0)
 
             return textureObjectIds[0]
+        }
+
+
+
+        fun intersects(sphere: Sphere, ray: Ray) : Boolean{
+            return distanceBetween(sphere.center, ray) < sphere.radius
+        }
+
+        fun distanceBetween (pointA : Point, ray : Ray) : Float
+        {
+            val vector1ToPoint = vectorBetween(ray.point, pointA)
+            val vector2ToPoint = vectorBetween(ray.point.translate(ray.vector), pointA)
+
+            val areaOfTrianglesTimesTwo = vector1ToPoint.crossProduct(vector2ToPoint).length()
+            val lengthOfBase = ray.vector.length()
+
+            return areaOfTrianglesTimesTwo / lengthOfBase
+        }
+
+        fun vectorBetween(point1 : Point, point2 : Point) : Vector{
+            return Vector(point2.x - point1.x, point2.y - point1.y,
+                    point2.z - point1.z)
+        }
+
+        fun intersectionPoint(ray : Ray, plane : Plane) : Point{
+            val rayToPlaneVector = vectorBetween(ray.point, plane.point)
+
+            val scaleFactor = rayToPlaneVector.dotProduct(plane.normal) / ray.vector.dotProduct(plane.normal)
+
+            return ray.point.translate(ray.vector.scale(scaleFactor))
+
         }
     }
 
